@@ -1,6 +1,10 @@
 import numpy as np
 from Environment import Environment
 import bisect
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+
+
 class State():
     def __init__(self, pos, yaw):
         self.pos = pos
@@ -82,8 +86,10 @@ class PRM():
 
 
     def traversePath(self):
-        self.path.append(self.nodes[0])
+        
         self.dfs(self.nodes[0], set())
+        self.path.append((self.nodes[0].pos, self.nodes[0].yaw))
+        self.path.reverse()
         # print("path success")
         
     
@@ -124,9 +130,45 @@ class PRM():
         
         self.traversePath()
         return self.path
+    
+
+    def plot_path(self):
+        fig = plt.figure()
+        ax = fig.add_subplot(projection='3d')
+
+        x, y, z = self.env.env.nonzero()
+        ax.scatter(x, y, z, color="aqua", alpha=0.2)
+
+        ax.set_xlim(0, 100)
+        ax.set_ylim(0, 100)
+        ax.set_zlim(0, 100)
+
+        ax.set_xlabel('X')
+        ax.set_ylabel('Y')
+        ax.set_zlabel('Z')
+
+        print(len(self.path))
+        node = self.path[0]
+        ax.scatter(node[0][0], node[0][1], node[0][2], color="green", alpha=0.5)
+        last = node
+        # print(node)
+        for i in range(1, len(self.path)-1):
+            node = self.path[i]
+            ax.scatter(node[0][0], node[0][1], node[0][2], color="red", alpha=0.5)
+            ax.plot([last[0][0], node[0][0]], [last[0][1], node[0][1]], [last[0][2], node[0][2]], color="tomato", alpha=0.5)
+            last = node
+            # print(node)
+        node = self.path[-1]
+        ax.scatter(node[0][0], node[0][1], node[0][2], color="green", alpha=0.5)
+        ax.plot([last[0][0], node[0][0]], [last[0][1], node[0][1]], [last[0][2], node[0][2]], color="tomato", alpha=0.5)
+        
+
+        plt.show()
+        
 
 if __name__ == "__main__":
     env = Environment("map1.npy")
-    prm = PRM((10, 20, 50), (100, 100, 100), env, 15, iterations=1000, path_resolution=0.5, quad_size=5)
+    prm = PRM((10, 20, 50), (90, 100, 100), env, 10, iterations=3000, path_resolution=0.5, quad_size=3)
     prm.plan()
     print(prm.path)
+    prm.plot_path()
